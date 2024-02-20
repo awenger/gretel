@@ -39,8 +39,9 @@ abstract class GretelTransformations : AsmClassVisitorFactory<Parameters> {
     }
 
     companion object {
-        private val instrumentables = listOf<GretelInstrumentable>(
-
+        private val instrumentables = listOf(
+            GretelActivityLifecycleTracer(),
+            GretelApplicationLifecycleTracer()
         )
     }
 }
