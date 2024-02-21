@@ -4,7 +4,7 @@ gretel - Gradle plugin that adds system trace events to an Android app
 ## Setup
 ```kt
 plugins {
-    id("de.awenger.gretel") version "0.0.1"
+    id("de.awenger.gretel") version "0.0.2"
 }
 ```
 
