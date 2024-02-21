@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.android.tools.build:gradle:8.2.2")
+    compileOnly("com.android.tools.build:gradle:8.2.2")
 }
 
 group = "de.awenger"
