@@ -24,7 +24,7 @@ gradlePlugin {
             id = "de.awenger.gretel"
             displayName = "Gretel"
             tags = listOf("trace", "android")
-            description = "Adds trace events to an Android app"
+            description = "Plugin that adds system trace events to an Android app"
             implementationClass = "de.awenger.gretel.GretelPlugin"
         }
     }
