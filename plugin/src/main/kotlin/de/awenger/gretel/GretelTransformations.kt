@@ -43,6 +43,7 @@ abstract class GretelTransformations : AsmClassVisitorFactory<Parameters> {
             GretelApplicationLifecycleTracer(),
             GretelActivityLifecycleTracer(),
             GretelFragmentLifecycleTracer(),
+            GretelBroadcastReceiverTracer(),
             GretelDaggerFactoryTracer(),
             GretelRxJavaTracer()
         )

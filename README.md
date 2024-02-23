@@ -21,6 +21,7 @@ plugins {
 - Android [Application](https://developer.android.com/reference/android/app/Application) lifecycle callbacks (onCreate, onConfigurationChanged, ...)
 - Android [Activity](https://developer.android.com/reference/android/app/Activity) lifecycle callbacks (onCreate, onResume, ...)
 - Android [Fragment](https://developer.android.com/reference/androidx/fragment/app/Fragment) lifecycle callbacks (onCreate, onResume, ...)
+- [BroadcastReceiver](https://developer.android.com/reference/android/content/BroadcastReceiver)::onReceive
 - Dagger [Factory](https://github.com/google/dagger/blob/c40811e71012c0838b83c3dd6b921f42332f2831/java/dagger/internal/Factory.java)::get methods, that provide dependencies
 - RxJava [function](https://github.com/ReactiveX/RxJava/tree/3.x/src/main/java/io/reactivex/rxjava3/functions) interfaces
 - More to come soon...
