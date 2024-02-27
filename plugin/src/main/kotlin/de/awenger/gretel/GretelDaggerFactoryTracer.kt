@@ -27,31 +27,21 @@ class GretelDaggerFactoryTracer : GretelInstrumentable {
                 signature: String?,
                 exceptions: Array<out String>?,
             ): MethodVisitor {
-                if (name != "get") return super.visitMethod(
-                    access,
-                    name,
-                    descriptor,
-                    signature,
-                    exceptions,
-                )
-                if (access and 0x1000 == 0x1000) return super.visitMethod(
-                    access,
-                    name,
-                    descriptor,
-                    signature,
-                    exceptions,
-                )
+                val nextMethodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions)
+
+                if (name != METHOD) return nextMethodVisitor
+                if (access and 0x1000 == 0x1000) return nextMethodVisitor
 
                 val returnClass = Type.getReturnType(descriptor).className.split(".").last()
                 val traceName = "Factory<$returnClass>::get"
 
-                val mv = super.visitMethod(access, name, descriptor, signature, exceptions)
-                return GretelTraceAddingMethodVisitor(traceName, apiVersion, mv)
+                return GretelTraceAddingMethodVisitor(traceName, apiVersion, nextMethodVisitor)
             }
         }
     }
 
     companion object {
         private const val DAGGER_FACTORY_INTERFACE = "dagger.internal.Factory"
+        private const val METHOD = "get"
     }
 }

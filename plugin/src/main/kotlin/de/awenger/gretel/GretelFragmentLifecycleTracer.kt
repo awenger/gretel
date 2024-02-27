@@ -26,25 +26,15 @@ class GretelFragmentLifecycleTracer : GretelInstrumentable {
                 signature: String?,
                 exceptions: Array<out String>?,
             ): MethodVisitor {
-                if (LIFECYCLE_CALLBACKS.contains(name).not()) return super.visitMethod(
-                    access,
-                    name,
-                    descriptor,
-                    signature,
-                    exceptions,
-                )
-                if (access and 0x1000 == 0x1000) return super.visitMethod(
-                    access,
-                    name,
-                    descriptor,
-                    signature,
-                    exceptions,
-                )
+                val nextMethodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions)
+
+                if (LIFECYCLE_CALLBACKS.contains(name).not()) return nextMethodVisitor
+                if (access and 0x1000 == 0x1000) return nextMethodVisitor
+
                 val className = classContext.currentClassData.className.split(".").last()
                 val traceName = "$className::$name"
 
-                val mv = super.visitMethod(access, name, descriptor, signature, exceptions)
-                return GretelTraceAddingMethodVisitor(traceName, apiVersion, mv)
+                return GretelTraceAddingMethodVisitor(traceName, apiVersion, nextMethodVisitor)
             }
         }
     }

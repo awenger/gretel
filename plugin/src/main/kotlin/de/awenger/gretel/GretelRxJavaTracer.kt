@@ -33,26 +33,15 @@ class GretelRxJavaTracer : GretelInstrumentable {
                     .filter { (interf, _) -> classInterfaces.contains(interf) }
                     .map { (_, method) -> method }
 
-                if (methodNames.contains(name).not()) return super.visitMethod(
-                    access,
-                    name,
-                    descriptor,
-                    signature,
-                    exceptions,
-                )
-                if (access and 0x1000 == 0x1000) return super.visitMethod(
-                    access,
-                    name,
-                    descriptor,
-                    signature,
-                    exceptions,
-                )
+                val nextMethodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions)
+
+                if (methodNames.contains(name).not()) return nextMethodVisitor
+                if (access and 0x1000 == 0x1000) return nextMethodVisitor
 
                 val className = classContext.currentClassData.className.split(".").last()
                 val traceName = "$className::$name(rx)"
 
-                val mv = super.visitMethod(access, name, descriptor, signature, exceptions)
-                return GretelTraceAddingMethodVisitor(traceName, apiVersion, mv)
+                return GretelTraceAddingMethodVisitor(traceName, apiVersion, nextMethodVisitor)
             }
         }
     }
