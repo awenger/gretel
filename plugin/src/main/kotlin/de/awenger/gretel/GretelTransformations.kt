@@ -8,6 +8,9 @@ import com.android.build.gradle.internal.instrumentation.ClassContextImpl
 import com.android.build.gradle.internal.instrumentation.ClassesDataCache
 import com.android.build.gradle.internal.instrumentation.ClassesHierarchyResolver
 import de.awenger.gretel.GretelTransformations.Parameters
+import de.awenger.gretel.dagger.GretelDaggerAndroidInjectorTracer
+import de.awenger.gretel.dagger.GretelDaggerFactoryTracer
+import de.awenger.gretel.dagger.GretelDaggerMembersInjectorTracer
 import org.objectweb.asm.ClassVisitor
 
 abstract class GretelTransformations : AsmClassVisitorFactory<Parameters> {
@@ -46,6 +49,7 @@ abstract class GretelTransformations : AsmClassVisitorFactory<Parameters> {
             GretelBroadcastReceiverTracer(),
             GretelDaggerFactoryTracer(),
             GretelDaggerMembersInjectorTracer(),
+            GretelDaggerAndroidInjectorTracer(),
             GretelRxJavaTracer()
         )
     }

@@ -1,6 +1,8 @@
-package de.awenger.gretel
+package de.awenger.gretel.dagger
 
 import com.android.build.api.instrumentation.ClassContext
+import de.awenger.gretel.GretelInstrumentable
+import de.awenger.gretel.GretelTransformations
 import de.awenger.gretel.util.GretelTraceAddingMethodVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
