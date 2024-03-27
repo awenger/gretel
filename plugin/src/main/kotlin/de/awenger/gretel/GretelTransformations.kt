@@ -11,16 +11,22 @@ import de.awenger.gretel.GretelTransformations.Parameters
 import de.awenger.gretel.dagger.GretelDaggerAndroidInjectorTracer
 import de.awenger.gretel.dagger.GretelDaggerFactoryTracer
 import de.awenger.gretel.dagger.GretelDaggerMembersInjectorTracer
+import org.gradle.api.tasks.Input
 import org.objectweb.asm.ClassVisitor
 
 abstract class GretelTransformations : AsmClassVisitorFactory<Parameters> {
-    interface Parameters : InstrumentationParameters {}
+    interface Parameters : InstrumentationParameters {
+        @get:Input
+        val shouldAnnotate: org.gradle.api.provider.Property<(String, String?) -> String?>
+    }
+
 
     override fun createClassVisitor(
         classContext: ClassContext,
         nextClassVisitor: ClassVisitor,
     ): ClassVisitor {
         val visitors = instrumentables
+            .plus(GretelDynamicTracer(parameters.get().shouldAnnotate.get()))
             .filter { it.isInstrumentable(classContext) }
         if (visitors.isEmpty()) return nextClassVisitor
         return visitors.fold(nextClassVisitor) { nextVisitor, instrumentable ->
@@ -38,7 +44,9 @@ abstract class GretelTransformations : AsmClassVisitorFactory<Parameters> {
             classData,
             ClassesHierarchyResolver.Builder(ClassesDataCache()).build(),
         )
-        return instrumentables.any { it.isInstrumentable(classContext) }
+        return instrumentables
+            .plus(GretelDynamicTracer(parameters.get().shouldAnnotate.get()))
+            .any { it.isInstrumentable(classContext) }
     }
 
     companion object {
