@@ -19,15 +19,10 @@ class GretelPlugin : Plugin<Project> {
                 variant.instrumentation.transformClassesWith(
                     GretelTransformations::class.java,
                     InstrumentationScope.ALL,
-                ) {
-                    it.shouldAnnotate.set(extension.annotate)
+                ) { params ->
+                    params.tracingTargets.set(extension.getTraceSpecs())
                 }
                 variant.instrumentation.setAsmFramesComputationMode(COMPUTE_FRAMES_FOR_INSTRUMENTED_METHODS)
             }
     }
-}
-
-
-open class GretelPluginExtension {
-    var annotate: (String, String?) -> String? = fun(_: String, _: String?): String? { return null }
 }
