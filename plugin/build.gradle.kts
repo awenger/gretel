@@ -14,7 +14,7 @@ dependencies {
 }
 
 group = "de.awenger"
-version = "0.0.5"
+version = "0.1.0"
 
 gradlePlugin {
     website = "https://github.com/awenger/gretel"
