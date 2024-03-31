@@ -1,34 +1,136 @@
 # gretel
-gretel - Gradle plugin that adds system trace events to an Android app
+
+Gretel is a Gradle plugin that instruments Android artifacts by adding system trace events during compilation. 
+
+Gretel enables the tracing of third-party and dynamically generated code, such as Dagger or Hilt. 
+Adding traces at compile time also keeps the logic of the app focused. 
+Centralized management of system traces also allows toggling the tracing on and off for the entire application. 
+Gretel offers a flexible way to target specific sections of an Android artifact for tracing. 
+For example, it is possible to add traces to all lifecycle callback methods, like onCreate and onResume, of all Activities with a single instruction.
+
+## How to
+
+- Apply the gretel gradle plugin, see section [Setup](#Setup)
+- Specify the methods you want to be traced, see section [Configuration](#Configuration)
+- Capture a system trace on the device, see [here](https://developer.android.com/topic/performance/tracing/on-device)
+- Perform the action in the app that you want to trace, for example launch the app
+- Stop the system trace capture
+- Pull the traces from the device via `adb pull /data/local/traces/ .`
+- Inspect the trace in Android studio (drag the trace file onto the bar of open files or open the Profiler tab and
+  select `+` > `Load from file...`)
 
 ## Setup
+
 ```kt
 plugins {
-    id("de.awenger.gretel") version "0.0.3"
+    id("de.awenger.gretel") version "0.0.6"
 }
 ```
 
-## How to
-- Apply the gretel gradle plugin
-- Capture a system trace on the device, see [here](https://developer.android.com/topic/performance/tracing/on-device)
-- Launch the app
-- Stop the system trace capture
-- Pull the traces from the device via `adb pull /data/local/traces/ .`
-- Inspect the trace in Android studio (drag the trace file onto the bar of open files or open the Profiler tab and select `+` > `Load from file...`)
+## Configuration
 
-## Traces are added to
+Gretel doesn't add any traces out of the box.
+It provides a DSL that configures to which classes and methods gretel will add system at compile time.
+For example the following snipped will make gretel add a trace to the `onCreate` method of the `your.app.MainActivity` class
+and the `onCreateView` method of the `your.app.MainFragment` class.
+The trace will be named `MainActivity::onCreate` and `your.app.MainFragment::onCreateView`
 
-- Android [Application](https://developer.android.com/reference/android/app/Application) lifecycle callbacks (onCreate, onConfigurationChanged, ...)
-- Android [Activity](https://developer.android.com/reference/android/app/Activity) lifecycle callbacks (onCreate, onResume, ...)
-- Android [Fragment](https://developer.android.com/reference/androidx/fragment/app/Fragment) lifecycle callbacks (onCreate, onResume, ...)
-- [BroadcastReceiver](https://developer.android.com/reference/android/content/BroadcastReceiver)::onReceive
-- Dagger
-  - [Factory::get](https://github.com/google/dagger/blob/c40811e71012c0838b83c3dd6b921f42332f2831/java/dagger/internal/Factory.java) methods, that provide dependencies
-  - [MembersInjector::injectMembers](https://github.com/google/dagger/blob/c40811e71012c0838b83c3dd6b921f42332f2831/java/dagger/MembersInjector.java) methods
-  - [AndroidInjector::inject](https://github.com/google/dagger/blob/c40811e71012c0838b83c3dd6b921f42332f2831/java/dagger/android/AndroidInjector.java) methods
-- RxJava [function](https://github.com/ReactiveX/RxJava/tree/3.x/src/main/java/io/reactivex/rxjava3/functions) interfaces
-- More to come soon...
+```kt
+android {
+    ...
+    gretel {
+        traceClass("your.app", "MainActivity") {
+            traceMethod("onCreate")
+        }
+        traceClass("your.app", "MainFragment") {
+            traceMethod("onCreateView")
+        }
+    }
+}
+
+```
+
+It is possible to omit any of these parameters to target multiple classes or methods.
+For example the following snipped will add a trace to all methods of all classes in the package `com.example.app.activites`.
+
+```kt
+traceClass("com.example.app.activities") {
+    traceMethod()
+}
+```
+
+Classes can also be targeted for tracing by the interfaces they implement or the super class they extend.
+For example the following snipped will add a traces to the `onCreate` and `onResume` methods of all Classes that extend `android.app.Activity`.
+
+```kt
+traceClass(superPackageName = "android.app", superName = "Activity") {
+    traceMethods("onCreate")
+    traceMethods("onResume")
+}
+```
+
+Classes can also be targeted via present annotations on the class.
+However, only annotation with `RetentionPolicy(CLASS)` and `RetentionPolicy(RUNTIME)` are supported.
+Annotations with `@Retention(SOURCE)` are not supported because they are already removed at compile time when gretel adds traces.
+The following snipped adds traces to all methods of classes that are annotated with `@dagger.hilt.android.lifecycle.HiltViewModel`:
+
+```kt
+traceClass(annotationPackageName = "dagger.hilt.android.lifecycle", annotationName = "HiltViewModel"){
+    traceMethod()
+}
+```
+
+## Why gretel
+
+- Adding traces at compile time, configured in a separate file, keeps the app code focused on the functionality.
+- Gretel can add traces to third-party code or code that is generated at compile time. For example gretel can add traces to the code that is generated by Hilt or Dagger.
+- Powerful targeting that enables adding traces to multiple classes and methods with a single definition. For example gretel can add traces to all lifecycle methods of all Activities in an app with a single definition.
+- The centralized definition of the traces makes it trivial to turn on/off the tracing for the whole app.
+
+## Common use cases
+
+The following sections showcase common use cases that add traces to specific functionality with gretel
+
+### Trace Android Application, BroadcastReceiver, Activity and Fragment
+
+The following snipped will add traces to all methods in classes that extend (directly or indirectly) 
+`android.app.Application`, `android.content.BroadcastReceiver`, `android.app.Activity` or `androidx.fragment.app.Fragment`.
+This can be used to trace the lifecycle callbacks in these classes.
+
+```kt
+traceClass(superPackageName = "android.app", superName = "Application") {
+    traceMethods()
+}
+traceClass(superPackageName = "android.content", superName = "BroadcastReceiver") {
+    traceMethods()
+}
+traceClass(superPackageName = "android.app", superName = "Activity") {
+    traceMethods()
+}
+traceClass(superPackageName = "androidx.fragment.app", superName = "Fragment") {
+    traceMethods()
+}
+```
+
+### Dagger
+
+Dagger/Hilt generates various classes to facilitate the dependency injection.
+It is impossible to modify such third party or generated code, so traces can not be added in the traditional way.
+Gretel can add traces to these classes and methods at compile time
+```kt
+traceClass(superPackageName = "dagger.internal", superName = "Factory") {
+    traceMethods("get")
+}
+traceClass(superPackageName = "dagger", superName = "MembersInjector") {
+    traceMethods()
+}
+traceClass(superPackageName = "dagger.android", superName = "AndroidInjector") {
+    traceMethods()
+}
+```
 
 ## Traces
-The gretel plugin adds the traces during the app build.
-The traces will be recorded via [androidx.core.os.TraceCompat](https://developer.android.com/reference/androidx/core/os/TraceCompat), by adding calls to [TraceCompat::beginSection](https://developer.android.com/reference/androidx/core/os/TraceCompat#beginSection(java.lang.String)) and [TraceCompat::endSection](https://developer.android.com/reference/androidx/core/os/TraceCompat#endSection()) in the relevant parts of the app
+
+The gretel plugin adds the traces at app build time.
+The traces will be recorded via [androidx.core.os.TraceCompat](https://developer.android.com/reference/androidx/core/os/TraceCompat), by adding calls to [TraceCompat::beginSection](https://developer.android.com/reference/androidx/core/os/TraceCompat#beginSection(java.lang.String)) 
+and [TraceCompat::endSection](https://developer.android.com/reference/androidx/core/os/TraceCompat#endSection()) to methods that are configured, see [#Configuration](#Configuration)
