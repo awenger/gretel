@@ -7,9 +7,9 @@ import de.awenger.gretel.config.TypeSpec
 
 
 fun ClassMatcherSpec.matches(classData: ClassData): Boolean {
-    val targetType = this.typeSpec.orNull
-    val targetSuper = this.superTypeSpecs.orNull?.takeIf { it.isNotEmpty() }
-    val targetAnnotation = this.annotationTypeSpec.orNull?.takeIf { it.isNotEmpty() }
+    val targetType = this.type.orNull
+    val targetSuper = this.superTypes.orNull?.takeIf { it.isNotEmpty() }
+    val targetAnnotation = this.annotationTypes.orNull?.takeIf { it.isNotEmpty() }
 
     val actualType = classData.className
     val actualSuperTypes = classData.interfaces.plus(classData.superClasses)
@@ -44,15 +44,15 @@ fun MethodMatcherSpec.matches(methodName: String?): Boolean {
 }
 
 fun ClassMatcherSpec.debugString(): String {
-    val superDbgString = superTypeSpecs
+    val superDbgString = superTypes
         .orNull
         ?.takeIf { it.isNotEmpty() }
         ?.joinToString { superType -> superType.debugString() }
         ?: "*"
-    return "${typeSpec.orNull.debugString()} : $superDbgString"
+    return "${type.orNull.debugString()} : $superDbgString"
 }
 
 private fun TypeSpec?.debugString(): String {
     if (this == null) return "*.*"
-    return "${packageName.orElse("*")}.${name.orElse("*")}"
+    return "${packageName.orNull ?: "*"}.${name.orNull ?: "*"}"
 }

@@ -30,53 +30,58 @@ plugins {
 ## Configuration
 
 Gretel doesn't add any traces out of the box.
-It provides a DSL that configures to which classes and methods gretel will add system at compile time.
+It provides a DSL that configures to which classes and methods gretel will add system traces at compile time.
 For example the following snipped will make gretel add a trace to the `onCreate` method of the `your.app.MainActivity` class
 and the `onCreateView` method of the `your.app.MainFragment` class.
 The trace will be named `MainActivity::onCreate` and `your.app.MainFragment::onCreateView`
 
 ```kt
 android {
-    ...
-    gretel {
-        traceClass("your.app", "MainActivity") {
-            traceMethod("onCreate")
-        }
-        traceClass("your.app", "MainFragment") {
-            traceMethod("onCreateView")
-        }
-    }
+  gretel {
+    traces = listOf(
+      defineTrace {
+        classes = classes(type("your.app", "MainActivity"))
+        methods = listOf(method("onCreate"))
+      },
+      defineTrace {
+        classes = classes(type("your.app", "MainFragment"))
+        methods = listOf(method("onCreateView"))
+      }
+    )
+  }
 }
-
 ```
 
 It is possible to omit any of these parameters to target multiple classes or methods.
 For example the following snipped will add a trace to all methods of all classes in the package `com.example.app.activites`.
 
 ```kt
-traceClass("com.example.app.activities") {
-    traceMethod()
+defineTrace {
+  classes = classes(superType = type("com.example.app.activites"))
 }
 ```
 
-Classes can also be targeted for tracing by the interfaces they implement or the super class they extend.
-For example the following snipped will add a traces to the `onCreate` and `onResume` methods of all Classes that extend `android.app.Activity`.
+Classes can also be targeted for tracing by the interfaces they implement or the class they extend.
+For example the following snipped will add traces to the `onCreate` and `onResume` methods of all classes that extend `android.app.Activity`.
 
 ```kt
-traceClass(superPackageName = "android.app", superName = "Activity") {
-    traceMethods("onCreate")
-    traceMethods("onResume")
+defineTrace {
+  classes = classes(superType = type("android.app", "Activity"))
+  methods = listOf(
+    method("onCreate"),
+    method("onResume")
+  )
 }
 ```
 
-Classes can also be targeted via present annotations on the class.
+Classes can also be targeted via annotations on the class.
 However, only annotation with `RetentionPolicy(CLASS)` and `RetentionPolicy(RUNTIME)` are supported.
 Annotations with `@Retention(SOURCE)` are not supported because they are already removed at compile time when gretel adds traces.
 The following snipped adds traces to all methods of classes that are annotated with `@dagger.hilt.android.lifecycle.HiltViewModel`:
 
 ```kt
-traceClass(annotationPackageName = "dagger.hilt.android.lifecycle", annotationName = "HiltViewModel"){
-    traceMethod()
+defineTrace {
+  classes = classes(annotationType = type("dagger.hilt.android.lifecycle", "HiltViewModel"))
 }
 ```
 
@@ -98,17 +103,21 @@ The following snipped will add traces to all methods in classes that extend (dir
 This can be used to trace the lifecycle callbacks in these classes.
 
 ```kt
-traceClass(superPackageName = "android.app", superName = "Application") {
-    traceMethods()
-}
-traceClass(superPackageName = "android.content", superName = "BroadcastReceiver") {
-    traceMethods()
-}
-traceClass(superPackageName = "android.app", superName = "Activity") {
-    traceMethods()
-}
-traceClass(superPackageName = "androidx.fragment.app", superName = "Fragment") {
-    traceMethods()
+gretel {
+  traces = listOf(
+    defineTrace {
+      classes = classes(superType = type("android.app", "Application"))
+    },
+    defineTrace {
+      classes = classes(superType = type("android.content", "BroadcastReceiver"))
+    },
+    defineTrace {
+      classes = classes(superType = type("android.app", "Activity"))
+    },
+    defineTrace {
+      classes = classes(superType = type("androidx.fragment.app", "Fragment"))
+    }
+  )
 }
 ```
 
@@ -118,14 +127,19 @@ Dagger/Hilt generates various classes to facilitate the dependency injection.
 It is impossible to modify such third party or generated code, so traces can not be added in the traditional way.
 Gretel can add traces to these classes and methods at compile time
 ```kt
-traceClass(superPackageName = "dagger.internal", superName = "Factory") {
-    traceMethods("get")
-}
-traceClass(superPackageName = "dagger", superName = "MembersInjector") {
-    traceMethods()
-}
-traceClass(superPackageName = "dagger.android", superName = "AndroidInjector") {
-    traceMethods()
+gretel {
+  traces = listOf(
+    defineTrace {
+      classes = classes(superType = type("dagger.internal", "Factory"))
+      methods = listOf(method("get"))
+    },
+    defineTrace {
+      classes = classes(superType = type("dagger", "MembersInjector"))
+    },
+    defineTrace {
+      classes = classes(superType = type("dagger.android", "AndroidInjector"))
+    }
+  )
 }
 ```
 

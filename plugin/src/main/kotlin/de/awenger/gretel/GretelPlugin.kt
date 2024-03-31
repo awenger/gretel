@@ -20,7 +20,7 @@ class GretelPlugin : Plugin<Project> {
                     GretelTransformations::class.java,
                     InstrumentationScope.ALL,
                 ) { params ->
-                    params.tracingTargets.set(extension.getTraceSpecs())
+                    params.tracingTargets.set(extension.traces.orElse(emptyList()))
                 }
                 variant.instrumentation.setAsmFramesComputationMode(COMPUTE_FRAMES_FOR_INSTRUMENTED_METHODS)
             }

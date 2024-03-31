@@ -4,9 +4,9 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 
 interface ClassMatcherSpec {
-    val typeSpec: Property<TypeSpec>
-    val superTypeSpecs: ListProperty<TypeSpec>
-    val annotationTypeSpec: ListProperty<TypeSpec>
+    val type: Property<TypeSpec>
+    val superTypes: ListProperty<TypeSpec>
+    val annotationTypes: ListProperty<TypeSpec>
 }
 
 interface TypeSpec {

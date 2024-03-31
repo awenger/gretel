@@ -12,7 +12,8 @@ class GretelConfigurableTracer(
 ) : GretelInstrumentable {
 
     override fun isInstrumentable(classData: ClassContext): Boolean {
-        return tracingSpec.classSpec.get().matches(classData.currentClassData)
+        val classSpec = tracingSpec.classes.orNull ?: return true
+        return classSpec.matches(classData.currentClassData)
     }
 
     override fun createClassVisitor(
@@ -34,21 +35,20 @@ class GretelConfigurableTracer(
 
                 if (access and 0x1000 == 0x1000) return nextMethodVisitor
 
-                return tracingSpec
-                    .methodsToTrace
-                    .get()
-                    .filter { it.methodSpec.get().matches(name) }
-                    .map { it.traceSpec.get() }
-                    .fold(nextMethodVisitor) { methodVisitor, traceNameSpec ->
-                        val className = classContext.currentClassData.className.split('.').last()
-                        val traceName = buildString {
-                            append(traceNameSpec.prefix.get())
-                            append(traceNameSpec.name.get().takeIf { it.isNotBlank() } ?: "$className::$name")
-                            append(traceNameSpec.suffix.get())
-                        }.take(TRACE_NAME_MAX_LENGTH)
-                        //println("- adding trace to ${classContext.currentClassData.className}::$name: '$traceName'")
-                        GretelTraceAddingMethodVisitor(traceName, apiVersion, methodVisitor)
-                    }
+                val methodSpecs = tracingSpec.methods.get()
+
+                val methodMatches = methodSpecs.isEmpty() || methodSpecs.any { it.matches(name) }
+                if (!methodMatches) return nextMethodVisitor
+
+                val className = classContext.currentClassData.className.split('.').last()
+                val traceName = buildString {
+                    append(tracingSpec.trace.orNull?.prefix?.orNull ?: "")
+                    append(tracingSpec.trace.orNull?.name?.orNull?.takeIf { it.isNotBlank() } ?: "$className::$name")
+                    append(tracingSpec.trace.orNull?.suffix?.orNull ?: "")
+                }.take(TRACE_NAME_MAX_LENGTH)
+
+                // println("- adding trace to ${classContext.currentClassData.className}::$name: '$traceName'")
+                return GretelTraceAddingMethodVisitor(traceName, apiVersion, nextMethodVisitor)
             }
         }
     }
