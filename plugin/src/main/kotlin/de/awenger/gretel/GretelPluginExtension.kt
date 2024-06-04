@@ -4,9 +4,12 @@ import de.awenger.gretel.config.*
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import javax.inject.Inject
 
 open class GretelPluginExtension @Inject constructor(private val objectFactory: ObjectFactory) {
+
+    val enabled: Property<Boolean> = objectFactory.property(Boolean::class.java)
 
     val traces: ListProperty<AddTraceSpec> = objectFactory.listProperty(AddTraceSpec::class.java)
 

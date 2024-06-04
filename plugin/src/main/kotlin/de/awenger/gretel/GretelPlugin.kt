@@ -16,6 +16,8 @@ class GretelPlugin : Plugin<Project> {
             .extensions
             .getByType(AndroidComponentsExtension::class.java)
             .onVariants { variant ->
+                if (extension.enabled.getOrElse(true).not()) return@onVariants
+
                 variant.instrumentation.transformClassesWith(
                     GretelTransformations::class.java,
                     InstrumentationScope.ALL,
