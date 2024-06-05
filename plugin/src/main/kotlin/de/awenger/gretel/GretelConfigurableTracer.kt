@@ -7,6 +7,7 @@ import de.awenger.gretel.util.GretelTraceIncludingCallValuesAddingMethodVisitor
 import de.awenger.gretel.util.matches
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
 class GretelConfigurableTracer(
@@ -64,9 +65,11 @@ class GretelConfigurableTracer(
                 return if (includeArgumentValues.not()) {
                     GretelTraceAddingMethodVisitor(traceName, apiVersion, nextMethodVisitor)
                 } else {
+                    val isStatic = (access and Opcodes.ACC_STATIC) != 0
                     GretelTraceIncludingCallValuesAddingMethodVisitor(
                         traceName,
                         Type.getArgumentTypes(descriptor),
+                        isStatic,
                         apiVersion,
                         nextMethodVisitor
                     )

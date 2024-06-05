@@ -7,6 +7,7 @@ import org.objectweb.asm.Type
 class GretelTraceIncludingCallValuesAddingMethodVisitor(
     private val traceName: String,
     private val arguments: Array<Type>,
+    private val isStatic: Boolean,
     apiVersion: Int,
     nextMethodVisitor: MethodVisitor,
 ) : MethodVisitor(apiVersion, nextMethodVisitor) {
@@ -16,12 +17,20 @@ class GretelTraceIncludingCallValuesAddingMethodVisitor(
         visitStringBuilderAppendWithStaticText(traceName)
         visitStringBuilderAppendWithStaticText("(")
 
-        arguments.forEachIndexed { argumentPosition, argumentType ->
+        arguments.forEachIndexed { pos, argumentType ->
+            // args are starting from position 0 for static functions, position 1 for member functions
+            val argumentPosition = pos + if (isStatic) 0 else 1
             when (argumentType.sort) {
                 Type.BOOLEAN, Type.CHAR, Type.DOUBLE, Type.FLOAT, Type.INT, Type.LONG -> {
                     visitLoadArgumentOntoStack(argumentPosition)
                     // StringBuilder::append accepts these directly
                     visitStringBuilderAppendWithTextOnStack(argumentType.descriptor)
+                }
+
+                Type.OBJECT -> {
+                    visitLoadArgumentOntoStack(argumentPosition)
+                    // StringBuilder::append accepts Object directly
+                    visitStringBuilderAppendWithTextOnStack("Ljava/lang/Object;")
                 }
 
                 else -> {
@@ -31,17 +40,26 @@ class GretelTraceIncludingCallValuesAddingMethodVisitor(
                     visitStringBuilderAppendWithTextOnStack("Ljava/lang/String;")
                 }
             }
-            if (argumentPosition in 0 until arguments.size - 1) {
+            if (pos in 0 until arguments.size - 1) {
                 visitStringBuilderAppendWithStaticText(", ")
             }
         }
         visitStringBuilderAppendWithStaticText(")")
         visitStringBuilderToString()
 
-        // String::take(127)
-        visitIntInsn(Opcodes.BIPUSH, 127) // max length of trace
-        visitKotlinStringTakeWithStringAndLengthOnStack()
+        // duplicate the string - will be consumed by String::substring further down
+        visitInsn(Opcodes.DUP)
 
+        visitStringLengthWithStringOnStack()
+
+        visitIntInsn(Opcodes.BIPUSH, 127)
+        visitMathMinWithIntIntOnStack()
+
+        visitInsn(Opcodes.ICONST_0)
+        visitInsn(Opcodes.SWAP)
+        visitStringSubstringWithStringIntIntOnStack()
+
+        // -----
         visitTraceCompatBeginSectionWithStringOnStack()
         super.visitCode()
     }

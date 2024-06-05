@@ -8,7 +8,7 @@ fun MethodVisitor.visitLoadStaticStringOntoStack(staticString: String) {
 }
 
 fun MethodVisitor.visitLoadArgumentOntoStack(argumentPosition: Int) {
-    visitIntInsn(Opcodes.ALOAD, argumentPosition + 1)
+    visitIntInsn(Opcodes.ALOAD, argumentPosition)
 }
 
 fun MethodVisitor.visitNewStringBuilder() {
@@ -32,7 +32,7 @@ fun MethodVisitor.visitStringBuilderAppendWithTextOnStack(argumentDescriptor: St
     )
 }
 
-fun MethodVisitor.visitStringBuilderToString(){
+fun MethodVisitor.visitStringBuilderToString() {
     visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
 }
 
@@ -46,12 +46,32 @@ fun MethodVisitor.visitToStringForObjectOnStack() {
     )
 }
 
-fun MethodVisitor.visitKotlinStringTakeWithStringAndLengthOnStack() {
+fun MethodVisitor.visitStringLengthWithStringOnStack() {
+    visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "java/lang/String",
+        "length",
+        "()I",
+        false
+    )
+}
+
+fun MethodVisitor.visitStringSubstringWithStringIntIntOnStack() {
+    visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "java/lang/String",
+        "substring",
+        "(II)Ljava/lang/String;",
+        false
+    )
+}
+
+fun MethodVisitor.visitMathMinWithIntIntOnStack() {
     visitMethodInsn(
         Opcodes.INVOKESTATIC,
-        "kotlin/text/StringsKt",
-        "take",
-        "(Ljava/lang/String;I)Ljava/lang/String;",
+        "java/lang/Math",
+        "min",
+        "(II)I",
         false
     )
 }
