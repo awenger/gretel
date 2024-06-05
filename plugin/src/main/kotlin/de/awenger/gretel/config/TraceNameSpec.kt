@@ -6,4 +6,5 @@ interface TraceNameSpec {
     val name: Property<String>
     val prefix: Property<String>
     val suffix: Property<String>
+    val includeArgumentValues : Property<Boolean>
 }

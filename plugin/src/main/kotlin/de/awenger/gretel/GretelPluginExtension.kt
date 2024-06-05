@@ -36,7 +36,8 @@ open class GretelPluginExtension @Inject constructor(private val objectFactory: 
     fun trace(
         name: String? = null,
         prefix: String? = null,
-        suffix: String? = null
+        suffix: String? = null,
+        includeArgumentValues: Boolean? = null
     ): TraceNameSpec {
         return objectFactory
             .newInstance(TraceNameSpec::class.java)
@@ -44,6 +45,7 @@ open class GretelPluginExtension @Inject constructor(private val objectFactory: 
                 it.name.set(name)
                 it.prefix.set(prefix)
                 it.suffix.set(suffix)
+                it.includeArgumentValues.set(includeArgumentValues)
             }
     }
 

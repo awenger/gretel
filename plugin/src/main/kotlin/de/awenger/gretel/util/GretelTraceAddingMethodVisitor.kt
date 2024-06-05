@@ -10,29 +10,15 @@ class GretelTraceAddingMethodVisitor(
 ) : MethodVisitor(apiVersion, nextMethodVisitor) {
 
     override fun visitCode() {
-        visitLdcInsn(traceName)
-        visitMethodInsn(
-            Opcodes.INVOKESTATIC,
-            "androidx/core/os/TraceCompat",
-            "beginSection",
-            "(Ljava/lang/String;)V",
-            false,
-        )
-        //println("injected beginSection($traceName)")
+        visitLoadStaticStringOntoStack(traceName)
+        visitTraceCompatBeginSectionWithStringOnStack()
         super.visitCode()
     }
 
     override fun visitInsn(opcode: Int) {
         when (opcode) {
             Opcodes.IRETURN, Opcodes.FRETURN, Opcodes.ARETURN, Opcodes.LRETURN, Opcodes.DRETURN, Opcodes.RETURN -> {
-                visitMethodInsn(
-                    Opcodes.INVOKESTATIC,
-                    "androidx/core/os/TraceCompat",
-                    "endSection",
-                    "()V",
-                    false,
-                )
-                //println("injected endSection($traceName)")
+                visitTraceCompatEndSection()
             }
 
             else -> {}

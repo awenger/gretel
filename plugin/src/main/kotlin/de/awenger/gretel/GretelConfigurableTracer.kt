@@ -3,9 +3,11 @@ package de.awenger.gretel
 import com.android.build.api.instrumentation.ClassContext
 import de.awenger.gretel.config.AddTraceSpec
 import de.awenger.gretel.util.GretelTraceAddingMethodVisitor
+import de.awenger.gretel.util.GretelTraceIncludingCallValuesAddingMethodVisitor
 import de.awenger.gretel.util.matches
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Type
 
 class GretelConfigurableTracer(
     val tracingSpec: AddTraceSpec
@@ -40,15 +42,35 @@ class GretelConfigurableTracer(
                 val methodMatches = methodSpecs.isEmpty() || methodSpecs.any { it.matches(name) }
                 if (!methodMatches) return nextMethodVisitor
 
+                val includeArgumentValues = tracingSpec.trace.orNull?.includeArgumentValues?.orNull ?: false
+
                 val className = classContext.currentClassData.className.split('.').last()
                 val traceName = buildString {
                     append(tracingSpec.trace.orNull?.prefix?.orNull ?: "")
                     append(tracingSpec.trace.orNull?.name?.orNull?.takeIf { it.isNotBlank() } ?: "$className::$name")
+                    // if we don't include the argument values, we want to include the argument types
+                    if (includeArgumentValues.not()) {
+                        append("(")
+                        val argumentTypes = Type.getArgumentTypes(descriptor)
+                        argumentTypes.forEachIndexed { index, type ->
+                            append(type.className)
+                            if (argumentTypes.size - 1 != index) append(", ")
+                        }
+                        append(")")
+                    }
                     append(tracingSpec.trace.orNull?.suffix?.orNull ?: "")
                 }.take(TRACE_NAME_MAX_LENGTH)
 
-                // println("- adding trace to ${classContext.currentClassData.className}::$name: '$traceName'")
-                return GretelTraceAddingMethodVisitor(traceName, apiVersion, nextMethodVisitor)
+                return if (includeArgumentValues.not()) {
+                    GretelTraceAddingMethodVisitor(traceName, apiVersion, nextMethodVisitor)
+                } else {
+                    GretelTraceIncludingCallValuesAddingMethodVisitor(
+                        traceName,
+                        Type.getArgumentTypes(descriptor),
+                        apiVersion,
+                        nextMethodVisitor
+                    )
+                }
             }
         }
     }
