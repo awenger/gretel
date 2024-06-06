@@ -23,7 +23,7 @@ For example, it is possible to add traces to all lifecycle callback methods, lik
 
 ```kt
 plugins {
-    id("de.awenger.gretel") version "0.3.0"
+    id("de.awenger.gretel") version "0.5.0"
 }
 ```
 
