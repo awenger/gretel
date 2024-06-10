@@ -1,5 +1,8 @@
-package de.awenger.gretel.util
+package de.awenger.gretel.bytecode
 
+import de.awenger.gretel.bytecode.util.visitLoadStaticStringOntoStack
+import de.awenger.gretel.bytecode.util.visitTraceCompatBeginSectionWithStringOnStack
+import de.awenger.gretel.bytecode.util.visitTraceCompatEndSection
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 

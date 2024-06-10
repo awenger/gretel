@@ -1,9 +1,9 @@
 package de.awenger.gretel
 
 import com.android.build.api.instrumentation.ClassContext
+import de.awenger.gretel.bytecode.GretelTraceAddingMethodVisitor
+import de.awenger.gretel.bytecode.GretelTraceIncludingCallValuesAddingMethodVisitor
 import de.awenger.gretel.config.AddTraceSpec
-import de.awenger.gretel.util.GretelTraceAddingMethodVisitor
-import de.awenger.gretel.util.GretelTraceIncludingCallValuesAddingMethodVisitor
 import de.awenger.gretel.util.matches
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor

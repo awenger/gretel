@@ -1,4 +1,4 @@
-package de.awenger.gretel.util
+package de.awenger.gretel.bytecode.util
 
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
