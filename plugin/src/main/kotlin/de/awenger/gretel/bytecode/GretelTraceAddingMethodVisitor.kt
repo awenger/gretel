@@ -9,7 +9,7 @@ import org.objectweb.asm.Opcodes
 class GretelTraceAddingMethodVisitor(
     private val traceName: String,
     apiVersion: Int,
-    nextMethodVisitor: MethodVisitor,
+    nextMethodVisitor: MethodVisitor?,
 ) : MethodVisitor(apiVersion, nextMethodVisitor) {
 
     override fun visitCode() {
