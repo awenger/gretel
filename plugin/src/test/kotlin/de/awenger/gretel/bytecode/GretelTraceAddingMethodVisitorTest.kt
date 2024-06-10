@@ -62,43 +62,43 @@ class GretelTraceAddingMethodVisitorTest : AsmTest() {
         val SRC_SAMPLE_CLASS: SourceFile = SourceFile.kotlin(
             name = "SampleClass.kt",
             contents = """
-            package my.sample
-
-            class SampleClass {
-                fun addition(x: Int, y: Int) = x + y
-            }
-        """
+                package my.sample
+                
+                class SampleClass {
+                    fun addition(x: Int, y: Int) = x + y
+                }
+            """.trimIndent()
         )
 
         val SRC_TRACE_COMPAT: SourceFile = SourceFile.java(
             name = "TraceCompat.java",
             contents = """
-            package androidx.core.os;
-            
-            import java.util.LinkedList;
-            import java.util.List;
-            
-            public final class TraceCompat {
-            
-                static {
-                    actions = new LinkedList<>();
+                package androidx.core.os;
+                
+                import java.util.LinkedList;
+                import java.util.List;
+                
+                public final class TraceCompat {
+                
+                    static {
+                        actions = new LinkedList<>();
+                    }
+                
+                    private static final List<String> actions;
+                
+                    public static List<String> getActions() {
+                        return actions;
+                    }
+                
+                    public static void beginSection(String sectionName) {
+                        actions.add("beginSection(" + sectionName + ")");
+                    }
+                
+                    public static void endSection() {
+                        actions.add("endSection()");
+                    }
                 }
-            
-                private static final List<String> actions;
-            
-                public static List<String> getActions() {
-                    return actions;
-                }
-            
-                public static void beginSection(String sectionName) {
-                    actions.add("beginSection(" + sectionName + ")");
-                }
-            
-                public static void endSection() {
-                    actions.add("endSection()");
-                }
-            }
-        """
+            """.trimIndent()
         )
     }
 }
