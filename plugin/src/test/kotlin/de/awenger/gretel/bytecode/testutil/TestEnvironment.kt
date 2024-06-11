@@ -5,7 +5,6 @@ import com.tschuchort.compiletesting.SourceFile
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import java.net.URLClassLoader
 
@@ -25,7 +24,7 @@ class TestEnvironment private constructor(
 
         compilationResult.generatedFiles.forEach { file ->
             if (file.name.endsWith(".class").not()) return@forEach
-            val writer = ClassWriter(api)
+            val writer = ClassWriter(ClassWriter.COMPUTE_FRAMES)
             val reader = ClassReader(file.inputStream())
 
             val className = file.relativeTo(compilationResult.outputDirectory).toString().dropLast(6).replace('/', '.')
@@ -49,17 +48,13 @@ class TestEnvironment private constructor(
 
         fun addSource(vararg sourceFile: SourceFile) = Builder(sourceFiles.plus(sourceFile), visitors)
         fun registerMethodVisitor(
-            className: String,
-            methodName: String,
-            methodVisitor: (Int, MethodVisitor) -> MethodVisitor
+            targetClassName: String,
+            methodVisitor: MethodClassVisitor.BuildMethodVisitor
         ): Builder {
             val builder = fun(cls: String, api: Int, nextVisitor: ClassVisitor?): ClassVisitor? {
-                if (cls != className) return nextVisitor
-                return MethodClassVisitor(api, nextVisitor) { method, api, nextVisitor ->
-                    if (method != methodName) nextVisitor else methodVisitor(api, nextVisitor)
-                }
+                if (cls != targetClassName) return nextVisitor
+                return MethodClassVisitor(api, nextVisitor, methodVisitor)
             }
-
             return Builder(sourceFiles, visitors.plus(builder))
         }
 
